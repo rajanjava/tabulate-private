@@ -754,8 +754,8 @@ multiline_formats = {
 #       - tsv: TBD
 #       - textile: Replace \n with <br/> (must be well-formed XML)
 
-_multiline_codes = re.compile(r"\r|\n|\r\n")
-_multiline_codes_bytes = re.compile(b"\r|\n|\r\n")
+_multiline_codes = re.compile(r"\r\n|\r|\n")
+_multiline_codes_bytes = re.compile(b"\r\n|\r|\n")
 
 # Handle ANSI escape sequences for both control sequence introducer (CSI) and
 # operating system command (OSC). Both of these begin with 0x1b (or octal 033),
@@ -1129,7 +1129,7 @@ def _is_multiline(s):
 
 def _multiline_width(multiline_s, line_width_fn=len):
     """Visible width of a potentially multiline content."""
-    return max(map(line_width_fn, re.split("[\r\n]", multiline_s)))
+    return max(map(line_width_fn, re.split(_multiline_codes, multiline_s)))
 
 
 def _choose_width_fn(has_invisible, enable_widechars, is_multiline):
@@ -1191,7 +1191,7 @@ def _align_column_choose_width_fn(has_invisible, enable_widechars, is_multiline)
 
 def _align_column_multiline_width(multiline_s, line_width_fn=len):
     """Visible width of a potentially multiline content."""
-    return list(map(line_width_fn, re.split("[\r\n]", multiline_s)))
+    return list(map(line_width_fn, re.split(_multiline_codes, multiline_s)))
 
 
 def _flat_list(nested_list):
@@ -1229,7 +1229,7 @@ def _align_column(
             ]
         else:
             # enable wide-character width corrections
-            s_lens = [[len(s) for s in re.split("[\r\n]", ms)] for ms in strings]
+            s_lens = [[len(s) for s in re.split(_multiline_codes, ms)] for ms in strings]
             visible_widths = [
                 [maxwidth - (w - ln) for w, ln in zip(mw, ml)] for mw, ml in zip(s_widths, s_lens)
             ]
