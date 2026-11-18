@@ -47,6 +47,11 @@ Got:
 '+-----+\n|   A |\n|     |\n|   B |\n+=====+\n|   1 |\n+-----+'
 ```
 
+## Solution Approach
+1. **Fix Regex Alternation Priority:** In Python's `re` engine, alternation `|` matches left-to-right eagerly. The pattern `r"\r|\n|\r\n"` matched `\r` first in a `\r\n` sequence and then matched `\n` as a second line break, inserting an extra blank row in CRLF headers/cells.
+2. **Longest-Match-First Ordering:** Reordered the regex alternation in `tabulate/__init__.py` to `r"\r\n|\r|\n"` so two-character CRLF sequences are consumed atomically before falling back to standalone CR or LF.
+3. **TDD & Regression Safety:** Added `test_crlf_multiline_header` in `test/test_regression.py` verifying CRLF, LF, and CR multiline headers all render identically without phantom blank rows.
+
 ## 4. Solution & Code Changes
 1. Updated `_multiline_codes` to `re.compile(r"\r\n|\r|\n")` and `_multiline_codes_bytes` to `re.compile(b"\r\n|\r|\n")` so that `\r\n` is matched atomically before single `\r` or `\n`.
 2. Updated `_multiline_width`, `_align_column_multiline_width`, and `_align_column` to use `re.split(_multiline_codes, ...)` instead of character class `[\r\n]` for consistent line handling across multiline cells.
